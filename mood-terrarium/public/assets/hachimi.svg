@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="哈基米小猫">
+  <g stroke="#5b4033" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#df8b4c" d="M58 82 48 35l42 27c19-11 44-12 64 0l39-27-8 49c16 17 24 41 20 67-7 43-37 68-83 68-47 0-79-26-84-69-3-27 4-50 20-68Z"/>
+    <path fill="#f5b76e" d="M61 80 56 52l27 19ZM158 70l27-18-5 29Z"/>
+    <path fill="#fff0cf" d="M75 134c3-24 22-38 47-38 26 0 45 15 47 40 3 29-15 59-47 59-33 0-51-30-47-61Z"/>
+    <path fill="none" d="M104 65c-9 9-12 19-10 30M123 61c-6 12-7 23-3 35M143 65c7 9 10 19 8 30"/>
+    <path fill="none" d="M53 150c-20 4-30 16-28 34M191 148c22 3 34 15 33 33"/>
+    <ellipse cx="94" cy="119" rx="8" ry="11" fill="#493a32" stroke="none"/>
+    <ellipse cx="151" cy="119" rx="8" ry="11" fill="#493a32" stroke="none"/>
+    <path fill="#d86658" d="m113 140 10-6 10 6-10 8Z"/>
+    <path fill="none" d="M123 148c0 11-8 16-17 12M123 148c0 11 8 16 17 12"/>
+    <path fill="none" d="M72 141H38M73 152l-31 9M173 141h34M171 152l31 9" stroke-width="5"/>
+    <path fill="#df8b4c" d="M184 172c29-4 43 10 37 31-6 19-30 24-47 7 18 1 27-5 28-15 1-9-5-15-18-23Z"/>
+    <path fill="none" d="M192 180c8 3 14 8 16 15M184 199c9 4 17 4 25 1"/>
+  </g>
+</svg>

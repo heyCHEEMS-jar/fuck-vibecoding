@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="description" content="拖动物品装箱，再点击、抛摔或摇晃手机把烦恼处理掉。原文不上传、不保存。">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>烦恼回收站</title>
+<style>
+:root {
+  --paper: #fffcf1;
+  --ink: #263f4a;
+  --muted: #899599;
+  --stage: #fff;
+  --green: #397469;
+  --font: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: var(--stage); }
+body { color: var(--ink); font: 15px/1.6 var(--font); touch-action: none; }
+button, textarea { font: inherit; }
+[hidden] { display: none !important; }
+.stage { position: fixed; inset: 0; overflow: hidden; background: var(--stage); }
+#scene { display: block; width: 100%; height: 100%; touch-action: none; }
+.note-paper {
+  position: fixed;
+  z-index: 2;
+  top: max(36px, calc(env(safe-area-inset-top) + 20px));
+  left: 50%;
+  width: min(82vw, 390px);
+  min-height: 206px;
+  padding: 18px;
+  border-radius: 5px;
+  background: var(--paper);
+  box-shadow: 0 12px 34px rgba(38, 63, 74, .14);
+  transform: translateX(-50%) rotate(-1deg);
+}
+#worry-note {
+  display: block;
+  width: 100%;
+  height: 100px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.65;
+}
+#worry-note::placeholder { color: #9aa4a2; }
+.note-next {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 650;
+}
+.note-next:disabled { background: #d8dede; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+dialog {
+  width: min(430px, calc(100% - 28px));
+  padding: 52px 25px 28px;
+  border: 1px solid rgba(38, 63, 74, .16);
+  border-radius: 16px;
+  background: #fbfcfb;
+  color: #526267;
+  font-size: 12.5px;
+  line-height: 1.78;
+  box-shadow: 0 20px 60px rgba(11, 20, 23, .3);
+}
+dialog::backdrop { background: rgba(18, 27, 30, .74); }
+.privacy-content { display: flex; flex-direction: column; gap: 10px; }
+.privacy-content p { margin: 0; }
+.privacy-content .muted { color: var(--muted); }
+.close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #718087;
+  font-size: 27px;
+  line-height: 34px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<main class="stage">
+  <canvas id="scene" width="800" height="1600" role="img" aria-label="写下烦恼，然后拖动物品进箱子"></canvas>
+  <div id="note-paper" class="note-paper">
+    <label class="sr-only" for="worry-note">写下今天最烦的事</label>
+    <textarea id="worry-note" rows="3" placeholder="写下今天最烦的事…" autocomplete="off" spellcheck="false" autofocus></textarea>
+    <button id="note-next" class="note-next" type="button" disabled>下一步</button>
+  </div>
+  <span id="status" class="sr-only" aria-live="polite"></span>
+</main>
+
+<dialog id="privacy-dialog" aria-label="隐私说明">
+  <button id="privacy-close" class="close" type="button" aria-label="关闭">×</button>
+  <div class="privacy-content">
+    <p>烦恼原文只存在当前页面运行内存中。完成封箱并进入破坏阶段后，原文会立即清空，不上传，也不会写入本机存储。</p>
+    <p>本机只保存累计完成过的回收日期，用于计算回收天数和切换结果样式；这些记录不包含原文、姓名、头像、公司或联系方式。</p>
+    <p>摇晃玩法只在破坏阶段读取实时加速度，用来计算纸箱方向、速度和边界撞击。离开页面或结束处理后会停止读取，也不会保存传感器轨迹。</p>
+    <p>震动只用于点击和撞击反馈；声音均为产品内置本地音效，不使用麦克风，也不会录音。</p>
+    <p>浏览器分享不会自动包含你写下的内容。</p>
+    <p class="muted">这是虚拟解压玩具，不提供心理诊断或治疗。若压力持续影响生活，建议向可信赖的人或专业人士寻求帮助。</p>
+  </div>
+</dialog>
+
+<script src="core.js"></script>
+<script src="scene.js"></script>
+<script src="physics.js"></script>
+<script src="progress.js"></script>
+<script src="audio.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

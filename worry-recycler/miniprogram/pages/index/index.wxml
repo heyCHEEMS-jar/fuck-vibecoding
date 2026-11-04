@@ -1,0 +1,38 @@
+<view class="page-shell">
+  <canvas
+    id="scene"
+    type="2d"
+    class="scene"
+    aria-label="{{canvasLabel}}"
+    bindtouchstart="onCanvasStart"
+    catchtouchmove="onCanvasMove"
+    bindtouchend="onCanvasEnd"
+    bindtouchcancel="onCanvasCancel">
+  </canvas>
+
+  <view wx:if="{{showNote}}" class="note-paper">
+    <textarea
+      class="note-field"
+      value="{{note}}"
+      maxlength="-1"
+      auto-focus="true"
+      show-confirm-bar="true"
+      placeholder="写下今天最烦的事…"
+      placeholder-class="placeholder"
+      bindinput="onNoteInput">
+    </textarea>
+    <button class="note-next" disabled="{{!canContinue}}" bindtap="finishNote">下一步</button>
+  </view>
+</view>
+
+<view wx:if="{{showPrivacy}}" class="modal-mask" catchtouchmove="preventDefault" bindtap="closePrivacy">
+  <view class="privacy-sheet" catchtap="preventDefault">
+    <view class="privacy-close" bindtap="closePrivacy">×</view>
+    <view>烦恼原文只存在当前页面运行内存中。完成封箱并进入破坏阶段后，原文会立即清空，不上传，也不会写入本机存储。</view>
+    <view>本机只保存累计完成过的回收日期，用于计算回收天数和切换结果样式；这些记录不包含原文、姓名、头像、公司或联系方式。</view>
+    <view>摇晃玩法只在破坏阶段读取实时加速度，用来计算纸箱方向、速度和边界撞击。离开页面或结束处理后会停止读取，也不会保存传感器轨迹。</view>
+    <view>震动只用于点击和撞击反馈；声音均为小程序内置本地音效，不使用麦克风，也不会录音。</view>
+    <view>微信分享只发送固定结果文案和小程序入口，不包含你写下的内容。</view>
+    <view class="muted">这是虚拟解压玩具，不提供心理诊断或治疗。若压力持续影响生活，建议向可信赖的人或专业人士寻求帮助。</view>
+  </view>
+</view>

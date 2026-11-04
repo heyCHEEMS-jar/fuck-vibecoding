@@ -1,0 +1,15 @@
+{
+  "description": "烦恼回收站 MVP",
+  "projectname": "worry-recycler",
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "miniprogram/",
+  "libVersion": "3.7.8",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": true
+  }
+}

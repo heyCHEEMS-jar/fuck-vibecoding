@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="露团背影">
+  <defs><filter id="p"><feTurbulence baseFrequency=".045" numOctaves="2" seed="7" result="n"/><feBlend in="SourceGraphic" in2="n" mode="soft-light"/></filter></defs>
+  <g filter="url(#p)" stroke="#31554b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#a8e1c0" d="M52 131c0-45 29-84 70-84 45 0 76 36 76 82 0 43-27 72-76 72-47 0-70-25-70-70Z"/>
+    <path fill="#77c99c" d="M105 52c-12-23-4-39 20-47 4 25-2 40-20 47Z"/>
+    <path fill="#d4f4d8" d="M125 47c13-23 29-27 47-12-14 20-29 25-47 12Z"/>
+    <path fill="none" d="M70 145c-8 13-7 29 3 40M177 145c7 15 5 29-7 40"/>
+    <path fill="#6bb58d" d="M97 147c19 17 38 17 56 0-3 32-11 48-28 48-18 0-26-16-28-48Z"/>
+    <path fill="#effbe8" stroke="none" d="M73 88c11-18 24-24 39-25-15 10-23 21-27 37-7-1-11-5-12-12Z" opacity=".72"/>
+  </g>
+</svg>

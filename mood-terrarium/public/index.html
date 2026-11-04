@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#f6d56f">
+  <meta name="description" content="拖动原创哈基米小猫吞掉烦恼，升级换上各种滑稽装扮。">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <title>哈基米吞吞团 · 情绪生态瓶</title>
+</head>
+<body data-mood="calm">
+  <main class="game-app" id="gameApp">
+    <section class="screen home-screen" id="homeScreen">
+      <div class="paper-sun" aria-hidden="true"></div>
+      <div class="sky-doodle sky-doodle-one" aria-hidden="true">⌁</div>
+      <div class="sky-doodle sky-doodle-two" aria-hidden="true">✦</div>
+
+      <header class="home-head">
+        <div class="brand">
+          <span class="brand-face" aria-hidden="true">◡</span>
+          <span><b>哈基米吞吞团</b><small>情绪生态瓶</small></span>
+        </div>
+        <div class="head-actions">
+          <span class="save-state" id="saveState">本地试玩</span>
+          <button class="round-button" id="settingsButton" type="button" aria-label="设置">⚙</button>
+          <button class="round-button account-button" id="accountButton" type="button" aria-label="账号与激活">钥匙</button>
+        </div>
+      </header>
+
+      <div class="home-resources" aria-label="拥有的资源">
+        <div><i class="resource-light"></i><span><b id="glowCount">30</b><small>微光</small></span></div>
+        <div><i class="resource-piece"></i><span><b id="fragmentCount">0</b><small>记忆碎片</small></span></div>
+        <div class="route-stamp"><small>今日路线</small><b id="routeCode">SUN-001</b></div>
+      </div>
+
+      <section class="chapter-picker" id="chapterPicker" aria-label="选择吞噬关卡">
+        <button class="active" data-chapter="home" type="button"><i>🏠</i><span>出租屋<small>从袜子开始吃</small></span></button>
+        <button data-chapter="office" type="button"><i>💼</i><span>办公室<small>吞掉加班文件</small></span></button>
+        <button data-chapter="monday" type="button"><i>☁️</i><span>星期一<small>最后一口</small></span></button>
+        <button data-chapter="infinite" type="button"><i>∞</i><span>无限竞技<small>主线通关解锁</small></span></button>
+      </section>
+
+      <section class="terrarium-home" aria-label="你的生态瓶">
+        <div class="terrarium-cloud cloud-left"></div>
+        <div class="terrarium-cloud cloud-right"></div>
+        <div class="speech" id="petSpeech">今天的烦恼，交给我吃。</div>
+        <div class="home-pets" id="homePets"></div>
+        <div class="terrarium-ground">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </section>
+
+      <section class="mission-panel">
+        <div class="mission-copy">
+          <p class="overline">今天也轻松一点</p>
+          <h1>让哈基米<br><em>一口吞掉。</em></h1>
+          <p id="trialText">单指拖动，松手就能把烦恼全部吹散。</p>
+        </div>
+        <button class="start-button" id="startButton" type="button">
+          <span class="start-face">◡</span>
+          <span><b>带哈基米出门</b><small id="startHint">今日穿搭 · 原味毛毛</small></span>
+          <i>›</i>
+        </button>
+      </section>
+
+      <section class="quick-settings" aria-label="选择出场动物">
+        <div class="hero-selector" id="heroSelector"></div>
+      </section>
+
+      <nav class="bottom-dock" aria-label="主要功能">
+        <button class="active" type="button"><i>⌂</i><span>微境</span></button>
+        <button id="dockCollection" type="button"><i>♧</i><span>装扮</span></button>
+        <button id="dockRecords" type="button"><i>✦</i><span>记录</span></button>
+      </nav>
+    </section>
+
+    <section class="screen run-screen" id="runScreen" hidden>
+      <canvas id="gameCanvas" aria-label="烦恼清扫游戏区"></canvas>
+      <div class="loading-overlay" id="loadingOverlay" hidden>
+        <div class="loading-cat">🐱</div>
+        <b>哈基米正在铺地图…</b>
+        <span>把能吃的东西先摆好</span>
+      </div>
+      <div class="run-hud">
+        <button class="exit-run" id="exitRun" type="button" aria-label="退出本局">×</button>
+        <div class="score-box"><small id="runScoreLabel">清爽值</small><b id="runScore">0</b></div>
+        <div class="speed-box"><small>当前体型</small><b>×<span id="runSpeed">1.0</span></b></div>
+        <div class="combo-box"><small>连续清扫</small><b>×<span id="runCombo">0</span></b></div>
+      </div>
+      <div class="boss-bar" id="bossBar"><span id="bossName">长大后吞掉关底目标</span><i><b id="bossHealth"></b></i></div>
+      <div class="pressure-panel"><span>烦恼压力</span><i><b id="pressureFill" data-level="0"></b></i></div>
+      <div class="run-message" id="runMessage">按住偏移控制方向，轻点停止，双击哈气</div>
+      <div class="burst-panel">
+        <span>哈气能量</span>
+        <div class="burst-track"><i id="burstFill"></i></div>
+        <small>按住偏移控制方向 · 轻点停止 · 双击哈气</small>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="sheet settings-sheet" id="settingsModal">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><p class="overline">设置</p><h2>微境天气</h2></div>
+      <button class="close-button" data-close="settingsModal" type="button">×</button>
+    </div>
+    <div class="mood-picker mood-picker-large" id="moodPicker" aria-label="选择天气">
+      <button class="active" data-mood="calm" type="button" aria-label="平静" title="平静"><i>≈</i></button>
+      <button data-mood="bright" type="button" aria-label="明亮" title="明亮"><i>☀</i></button>
+      <button data-mood="tired" type="button" aria-label="困困" title="困困"><i>☂</i></button>
+      <button data-mood="restless" type="button" aria-label="闹腾" title="闹腾"><i>⌁</i></button>
+    </div>
+  </dialog>
+
+  <dialog class="sheet collection-sheet" id="collectionModal">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><p class="overline">动物衣柜</p><h2>今天穿什么？</h2></div>
+      <button class="close-button" data-close="collectionModal" type="button">×</button>
+    </div>
+    <p class="sheet-copy">跑得越远等级越高，会解锁更离谱的新衣服。</p>
+    <div class="collection-list" id="collectionList"></div>
+  </dialog>
+
+  <dialog class="sheet records-sheet" id="recordsModal">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><p class="overline">战绩记录</p><h2>吞吞团档案</h2></div>
+      <button class="close-button" data-close="recordsModal" type="button">×</button>
+    </div>
+    <p class="sheet-copy">每一局都会记下来，无限竞技以最快用时为准。</p>
+    <div class="record-card">
+      <span><small>乱吃次数</small><b id="recordRuns">0</b></span>
+      <span><small>最佳清爽值</small><b id="recordScore">0</b></span>
+      <span><small>最高连击</small><b id="recordCombo">0</b></span>
+      <span><small>吞掉的烦恼</small><b id="recordCleared">0</b></span>
+    </div>
+    <div class="record-time"><span>无限竞技最快用时<small>达到体型目标，用时越短越好</small></span><b id="recordInfiniteTime">暂无通关纪录</b></div>
+  </dialog>
+
+  <dialog class="result-modal" id="resultModal">
+    <div class="result-confetti" aria-hidden="true">✦　·　✦　·　✦</div>
+    <p class="overline">本次清扫完成</p>
+    <h2 id="resultTitle">今天也轻松了一点</h2>
+    <div class="result-hero-wrap"><img id="resultHero" src="/assets/hachimi.svg" alt="哈基米"><img class="result-outfit" id="resultOutfit" alt=""><span class="result-animal-emoji" id="resultAnimalEmoji" hidden></span></div>
+    <p class="result-quip" id="resultQuip">哈基米刚想摆帅，就被自己的大尾巴绊倒了。</p>
+    <div class="result-stats">
+      <span><small id="resultScoreLabel">清爽值</small><b id="resultScore">0</b></span>
+      <span><small>最终体型</small><b>×<i id="resultSpeed">1.0</i></b></span>
+      <span><small>最高连击</small><b id="resultCombo">0</b></span>
+      <span><small>吞掉烦恼</small><b id="resultCleared">0</b></span>
+    </div>
+    <div class="new-friend" id="newFriend" hidden></div>
+    <div class="result-actions">
+      <button class="button button-primary" id="retryButton" type="button">再吞一局</button>
+      <button class="button button-paper" id="shareResult" type="button">晒一下战绩</button>
+      <button class="text-button" id="backHome" type="button">回生态瓶看看</button>
+    </div>
+  </dialog>
+
+  <dialog class="account-modal" id="accountModal">
+    <div class="account-art">
+      <span>✦</span>
+      <img src="/assets/hachimi.svg" alt="">
+      <p>让哈基米和衣柜在云端继续长大</p>
+    </div>
+    <div class="account-content">
+      <button class="close-button" id="closeAccount" type="button">×</button>
+      <p class="overline">完整版本</p>
+      <h2 id="accountTitle">用 Key 激活</h2>
+      <p id="accountCopy">保留试玩进度，解锁完整主线、无限竞技、升级换装和云存档。</p>
+      <div class="account-tabs" role="tablist">
+        <button class="active" id="registerTab" type="button" role="tab">Key 激活注册</button>
+        <button id="loginTab" type="button" role="tab">已有账号登录</button>
+      </div>
+      <form id="accountForm" novalidate>
+        <label>用户名<input id="username" name="username" autocomplete="username" minlength="3" maxlength="24" required></label>
+        <label>密码<input id="password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label>
+        <label id="keyField">激活码<input id="activationKey" name="activationKey" autocomplete="off" spellcheck="false" placeholder="MGP-XXXX-XXXX-XXXX-XXXX" required></label>
+        <p class="form-error" id="formError" role="alert"></p>
+        <button class="button button-primary" id="submitAccount" type="submit">激活并保存进度</button>
+      </form>
+      <p class="account-note">已有账号登录不需要 Key。公开收费运营前仍需按适用政策完善相关流程。</p>
+    </div>
+  </dialog>
+
+  <canvas id="shareCanvas" width="1080" height="1440" hidden></canvas>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

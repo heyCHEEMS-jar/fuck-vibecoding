@@ -1,0 +1,9 @@
+{
+  "desc": "烦恼回收站页面索引配置",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "pages/index/index"
+    }
+  ]
+}

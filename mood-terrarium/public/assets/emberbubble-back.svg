@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="火泡背影">
+  <defs><filter id="p"><feTurbulence baseFrequency=".05" numOctaves="2" seed="21" result="n"/><feBlend in="SourceGraphic" in2="n" mode="soft-light"/></filter></defs>
+  <g filter="url(#p)" stroke="#713e39" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#f2a06f" d="M55 131c0-43 29-76 70-76 42 0 71 31 71 75 0 45-28 72-72 72-45 0-69-27-69-71Z"/>
+    <path fill="#ef6e4f" d="M83 67C69 41 80 21 112 8c-3 20 3 29 17 39-16-1-32 6-46 20ZM170 71c20-20 38-18 54 5-23 10-40 8-54-5Z"/>
+    <path fill="#ffd36c" d="M106 55c-3-17 5-30 24-40-1 18 5 26 17 34-16-1-29 1-41 6Z"/>
+    <path fill="#db7554" d="M95 145c20 19 42 19 62 0-2 31-12 47-31 47-20 0-29-16-31-47Z"/>
+    <path fill="none" d="M64 151c-13 12-13 25 1 37M184 151c14 11 14 24 1 38"/>
+    <path fill="#ffe7bd" stroke="none" d="M78 88c10-17 23-24 39-24-13 9-22 20-27 35-7-1-11-4-12-11Z" opacity=".72"/>
+  </g>
+</svg>
