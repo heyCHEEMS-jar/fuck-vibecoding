@@ -1,14 +1,13 @@
 {
-  "name": "mood-terrarium",
+  "name": "hachimi",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "情绪生态瓶：可试玩、Key 激活、云存档的轻量收集 H5 MVP",
+  "description": "哈基米哦南北绿豆",
   "scripts": {
     "dev": "node --env-file-if-exists=.env --watch server.mjs",
     "start": "node --env-file-if-exists=.env server.mjs",
     "keys": "node --env-file-if-exists=.env scripts/generate-keys.mjs",
     "test": "node --test"
-  },
-  "engines": { "node": ">=24" }
+  }
 }
