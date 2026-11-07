@@ -8,9 +8,9 @@
   const STORAGE_KEY = "worry-recycler-progress-v1";
   const MAX_DATES = 370;
   const UNLOCKS = Object.freeze([
-    { days: 2, label: "新卡面" },
-    { days: 4, label: "故障警报卡面" },
-    { days: 7, label: "限定回收章" }
+    { days: 2, label: "新损话" },
+    { days: 4, label: "系统发疯卡面" },
+    { days: 7, label: "工位幸存章" }
   ]);
 
   function chinaDate(now = Date.now()) {
@@ -58,8 +58,8 @@
     const days = Number.isFinite(totalDays) ? Math.max(0, Math.floor(totalDays)) : 0;
     const next = nextUnlock(days);
     return next
-      ? `累计回收 ${days} 天 · 再来 ${next.days - days} 天解锁${next.label}`
-      : `累计回收 ${days} 天 · 限定回收章已解锁`;
+      ? `已放过自己 ${days} 天 · 再撑 ${next.days - days} 天解锁${next.label}`
+      : `已放过自己 ${days} 天 · 工位幸存章已到手`;
   }
 
   function storedValue(value) {

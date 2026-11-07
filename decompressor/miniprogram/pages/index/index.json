@@ -2,5 +2,6 @@
   "navigationBarTitleText": "烦恼回收站",
   "enableShareAppMessage": true,
   "enableShareTimeline": true,
+  "disableScroll": true,
   "backgroundColor": "#ffffff"
 }

@@ -28,6 +28,14 @@
   transform: translateX(-50%) rotate(-1deg);
 }
 
+.note-label {
+  margin-bottom: 12rpx;
+  color: #263f4a;
+  font-size: 25rpx;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
 .note-field {
   box-sizing: border-box;
   width: 100%;
@@ -41,6 +49,29 @@
 
 .placeholder {
   color: #9aa4a2;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.tag-item {
+  padding: 10rpx 20rpx;
+  border: 2rpx solid #d8dede;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.58);
+  color: #718087;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.tag-item-active {
+  border-color: #263f4a;
+  background: #263f4a;
+  color: #fff;
 }
 
 .note-next {
@@ -60,6 +91,97 @@
 .note-next[disabled] {
   background: #d8dede;
   color: #fff;
+}
+
+.result-overlay {
+  position: absolute;
+  z-index: 4;
+  top: 32rpx;
+  left: 50%;
+  width: min(650rpx, calc(100% - 56rpx));
+  transform: translateX(-50%);
+}
+
+.result-card {
+  box-sizing: border-box;
+  padding: 30rpx;
+  border: 2rpx solid #397469;
+  border-radius: 18rpx;
+  background: rgba(251, 252, 251, 0.96);
+  box-shadow: 0 22rpx 56rpx rgba(27, 48, 53, 0.18);
+  color: #263f4a;
+  text-align: center;
+}
+
+.result-tier-1 { border-color: #79558b; }
+.result-tier-2 { border-color: #4774a8; }
+.result-tier-3 { border-color: #d2a83f; }
+
+.result-kicker {
+  color: #718087;
+  font-size: 20rpx;
+  letter-spacing: 5rpx;
+}
+
+.result-title {
+  margin-top: 8rpx;
+  font-size: 34rpx;
+  font-weight: 750;
+}
+
+.result-line {
+  margin-top: 10rpx;
+  font-size: 29rpx;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.result-status,
+.result-summary {
+  margin-top: 10rpx;
+  color: #718087;
+  font-size: 21rpx;
+  line-height: 1.55;
+}
+
+.result-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.result-share,
+.result-again,
+.reward-button {
+  min-height: 72rpx;
+  border-radius: 10rpx;
+  font-size: 24rpx;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.result-share,
+.result-again {
+  flex: 1;
+  margin: 0;
+}
+
+.result-share {
+  background: #263f4a;
+  color: #fff;
+}
+
+.result-again {
+  background: #e9eeee;
+  color: #263f4a;
+}
+
+.reward-button {
+  width: 100%;
+  margin: 16rpx 0 0;
+  background: transparent;
+  color: #526267;
+  font-size: 21rpx;
 }
 
 .modal-mask {

@@ -411,7 +411,7 @@
     ctx.rotate(-0.075);
     ctx.scale(bounce, bounce);
     roundRect(ctx, -170, -48, 340, 96, 14, C.paper, C.green);
-    label(ctx, "今天到此为止", -126, 17, 38, C.green, "900");
+    label(ctx, "不伺候了", -92, 17, 38, C.green, "900");
     ctx.restore();
   }
 
@@ -453,14 +453,14 @@
     }
     roundRect(ctx, 551, 317, 160, 144, 7, C.green, C.ink);
     roundRect(ctx, 540, 299, 183, 24, 6, C.blueLight, C.ink);
-    label(ctx, "回收", 596, 401, 26, C.paper, "700");
+    label(ctx, "滚蛋", 596, 401, 26, C.paper, "700");
     line(ctx, [[580,341],[597,332],[613,344]], C.paper, 4);
     line(ctx, [[676,345],[681,363],[664,369]], C.paper, 4);
     line(ctx, [[641,428],[620,428],[615,410]], C.paper, 4);
     if (resultView) {
       ctx.save(); ctx.translate(345, 350); ctx.rotate(-0.13);
       roundRect(ctx, -94, -29, 188, 58, 7, C.paper, C.green);
-      label(ctx, "烦恼已回收", -74, 10, 26, C.green, "800");
+      label(ctx, "破事已处理", -74, 10, 26, C.green, "800");
       ctx.restore();
     }
   }
@@ -538,7 +538,8 @@
 
     if (drag && drag.kind === "prop") {
       const item = PROP_LAYOUT.find(prop => prop.id === drag.id);
-      ctx.save(); ctx.shadowColor = "rgba(38,63,74,0.28)"; ctx.shadowBlur = 24;
+      ctx.save();
+      ctx.globalAlpha = 0.96;
       drawProp(ctx, drag.id, drag.x, drag.y, item ? item.scale * 1.08 : 0.9, drag.angle || 0);
       ctx.restore();
     } else if (drag && drag.kind === "tape") drawTapeRoll(ctx, drag.x, drag.y, 0.2);

@@ -1,0 +1,9 @@
+{
+  "name": "face-score",
+  "version": "0.1.0",
+  "private": true,
+  "description": "纯本地照片评分微信小程序",
+  "scripts": {
+    "check": "node --check miniprogram/app.js && node --check miniprogram/pages/index/index.js && node --check miniprogram/utils/analyzer.js"
+  }
+}

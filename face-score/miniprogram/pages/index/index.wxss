@@ -1,0 +1,398 @@
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: calc(env(safe-area-inset-top) + 34rpx) 36rpx calc(env(safe-area-inset-bottom) + 36rpx);
+}
+
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.brand {
+  font-size: 42rpx;
+  font-weight: 800;
+  letter-spacing: -2rpx;
+}
+
+.tagline {
+  margin-top: 4rpx;
+  color: #77746e;
+  font-size: 21rpx;
+}
+
+.privacy-link {
+  width: auto;
+  margin: 0;
+  padding: 10rpx 0 10rpx 24rpx;
+  background: transparent;
+  color: #77746e;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.home {
+  display: flex;
+  min-height: calc(100vh - 180rpx - env(safe-area-inset-top));
+  flex-direction: column;
+}
+
+.intro {
+  margin-top: 102rpx;
+}
+
+.eyebrow,
+.score-label {
+  color: #77746e;
+  font-size: 20rpx;
+  font-weight: 650;
+  letter-spacing: 4rpx;
+}
+
+.headline {
+  margin-top: 12rpx;
+  font-size: 64rpx;
+  font-weight: 800;
+  letter-spacing: -4rpx;
+  line-height: 1.1;
+}
+
+.intro-copy {
+  margin-top: 18rpx;
+  color: #77746e;
+  font-size: 24rpx;
+}
+
+.mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-top: 64rpx;
+}
+
+.mode {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 250rpx;
+  margin: 0;
+  padding: 28rpx 30rpx;
+  border-radius: 4rpx;
+  text-align: left;
+}
+
+.mode-dark {
+  background: #171717;
+  color: #fff;
+}
+
+.mode-light {
+  border: 2rpx solid #171717;
+  background: transparent;
+  color: #171717;
+}
+
+.mode-index {
+  opacity: 0.52;
+  font-size: 19rpx;
+  letter-spacing: 3rpx;
+}
+
+.mode-title {
+  margin-top: 20rpx;
+  font-size: 42rpx;
+  font-weight: 760;
+}
+
+.mode-copy {
+  margin-top: 8rpx;
+  opacity: 0.62;
+  font-size: 21rpx;
+}
+
+.mode-action {
+  position: absolute;
+  right: 30rpx;
+  bottom: 26rpx;
+  font-size: 22rpx;
+  font-weight: 650;
+}
+
+.local-note {
+  margin-top: auto;
+  padding-top: 40rpx;
+  color: #8c8983;
+  font-size: 20rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.center-state {
+  display: flex;
+  min-height: calc(100vh - 190rpx - env(safe-area-inset-top));
+  flex-direction: column;
+  justify-content: center;
+}
+
+.state-number {
+  color: #aaa69f;
+  font-size: 19rpx;
+  letter-spacing: 4rpx;
+}
+
+.state-title {
+  margin-top: 20rpx;
+  font-size: 56rpx;
+  font-weight: 780;
+  letter-spacing: -3rpx;
+}
+
+.state-copy {
+  margin-top: 16rpx;
+  color: #77746e;
+  font-size: 24rpx;
+}
+
+.progress {
+  height: 3rpx;
+  margin-top: 48rpx;
+  overflow: hidden;
+  background: #dedcd6;
+}
+
+.progress-bar {
+  width: 42%;
+  height: 100%;
+  background: #171717;
+  animation: scan 1.15s ease-in-out infinite alternate;
+}
+
+@keyframes scan {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(240%); }
+}
+
+.result {
+  padding-top: 72rpx;
+}
+
+.score-card {
+  padding: 38rpx 0 44rpx;
+  border-bottom: 2rpx solid #171717;
+}
+
+.score-row {
+  display: flex;
+  align-items: flex-end;
+  margin-top: 14rpx;
+}
+
+.score {
+  font-size: 156rpx;
+  font-weight: 850;
+  letter-spacing: -12rpx;
+  line-height: 0.9;
+}
+
+.score-unit {
+  margin: 0 0 12rpx 16rpx;
+  color: #77746e;
+  font-size: 23rpx;
+}
+
+.result-title {
+  margin-top: 32rpx;
+  font-size: 40rpx;
+  font-weight: 760;
+}
+
+.result-summary {
+  margin-top: 10rpx;
+  color: #77746e;
+  font-size: 24rpx;
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  margin-top: 34rpx;
+}
+
+.ranking {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 16rpx;
+  border: 1rpx solid #d9d7d1;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.ranking-best {
+  border: 2rpx solid #171717;
+  background: #fff;
+}
+
+.ranking-image {
+  width: 106rpx;
+  height: 132rpx;
+  flex: none;
+  background: #dedcd6;
+}
+
+.ranking-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.ranking-head {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.ranking-place {
+  color: #77746e;
+  font-size: 19rpx;
+  font-weight: 500;
+}
+
+.ranking-copy {
+  margin-top: 10rpx;
+  overflow: hidden;
+  color: #77746e;
+  font-size: 20rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-score {
+  width: 68rpx;
+  flex: none;
+  font-size: 38rpx;
+  font-weight: 800;
+  text-align: right;
+}
+
+.detail-list {
+  margin-top: 38rpx;
+}
+
+.detail {
+  padding: 24rpx 0 26rpx;
+  border-bottom: 1rpx solid #d9d7d1;
+}
+
+.detail-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  font-weight: 650;
+}
+
+.detail-track {
+  height: 5rpx;
+  margin-top: 15rpx;
+  overflow: hidden;
+  background: #dedcd6;
+}
+
+.detail-fill {
+  height: 100%;
+  background: #171717;
+}
+
+.detail-copy {
+  margin-top: 12rpx;
+  color: #77746e;
+  font-size: 21rpx;
+}
+
+.disclaimer {
+  margin-top: 30rpx;
+  color: #8c8983;
+  font-size: 19rpx;
+  line-height: 1.7;
+}
+
+.result-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 36rpx;
+}
+
+.result-actions button {
+  flex: 1;
+  min-height: 88rpx;
+  margin: 0;
+  border-radius: 2rpx;
+  font-size: 24rpx;
+  font-weight: 680;
+}
+
+.again {
+  background: #171717;
+  color: #fff;
+}
+
+.home-button {
+  border: 2rpx solid #171717;
+  background: transparent;
+  color: #171717;
+}
+
+.analysis-canvas {
+  position: fixed;
+  top: -10px;
+  left: -10px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-mask {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 24rpx;
+  background: rgba(0, 0, 0, 0.56);
+}
+
+.privacy-sheet {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 58rpx 34rpx 38rpx;
+  background: #f5f4f0;
+  color: #5f5c57;
+  font-size: 22rpx;
+  line-height: 1.75;
+}
+
+.modal-title {
+  color: #171717;
+  font-size: 34rpx;
+  font-weight: 760;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14rpx;
+  right: 18rpx;
+  width: 60rpx;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: #171717;
+  font-size: 42rpx;
+  line-height: 60rpx;
+}

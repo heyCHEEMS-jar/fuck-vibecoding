@@ -1,0 +1,99 @@
+<view class="page">
+  <view class="topbar">
+    <view>
+      <view class="brand">镜况</view>
+      <view class="tagline">照片选对，比滤镜重要</view>
+    </view>
+    <button class="privacy-link" bindtap="openPrivacy">隐私</button>
+  </view>
+
+  <view wx:if="{{stage === 'home'}}" class="home">
+    <view class="intro">
+      <view class="eyebrow">仅在本机分析</view>
+      <view class="headline">现在要选什么？</view>
+      <view class="intro-copy">照片不上传、不保存，不识别你是谁</view>
+    </view>
+
+    <view class="mode-list">
+      <button class="mode mode-dark" data-mode="compare" bindtap="choosePhotos">
+        <view class="mode-index">01</view>
+        <view class="mode-title">哪张更上镜</view>
+        <view class="mode-copy">一次选 2～3 张，比较光线、清晰度、色彩和构图</view>
+        <view class="mode-action">开始对比 →</view>
+      </button>
+
+      <button class="mode mode-light" data-mode="idPhoto" bindtap="choosePhotos">
+        <view class="mode-index">02</view>
+        <view class="mode-title">证件照能用吗</view>
+        <view class="mode-copy">检查曝光、背景、清晰度和基础构图</view>
+        <view class="mode-action">选择照片 →</view>
+      </button>
+    </view>
+
+    <view class="local-note">单张首次免费 · 多图对比或后续分析观看广告</view>
+  </view>
+
+  <view wx:elif="{{stage === 'waiting'}}" class="center-state">
+    <view class="state-number">{{statusNumber}}</view>
+    <view class="state-title">{{statusTitle}}</view>
+    <view class="state-copy">{{statusCopy}}</view>
+    <view class="progress"><view class="progress-bar"></view></view>
+  </view>
+
+  <view wx:elif="{{stage === 'result'}}" class="result">
+    <view class="score-card">
+      <view class="score-label">{{modeLabel}}</view>
+      <view class="score-row">
+        <view class="score">{{result.score}}</view>
+        <view class="score-unit">/ 100</view>
+      </view>
+      <view class="result-title">{{result.title}}</view>
+      <view class="result-summary">{{result.summary}}</view>
+    </view>
+
+    <view wx:if="{{rankings.length}}" class="ranking-list">
+      <view wx:for="{{rankings}}" wx:key="sourceIndex" class="ranking {{item.best ? 'ranking-best' : ''}}">
+        <image class="ranking-image" src="{{item.path}}" mode="aspectFill"></image>
+        <view class="ranking-body">
+          <view class="ranking-head">
+            <view>第 {{item.sourceIndex}} 张</view>
+            <view class="ranking-place">第 {{item.rank}} 名</view>
+          </view>
+          <view class="ranking-copy">{{item.best ? '推荐使用这张' : item.summary}}</view>
+        </view>
+        <view class="ranking-score">{{item.score}}</view>
+      </view>
+    </view>
+
+    <view class="detail-list">
+      <view wx:for="{{result.details}}" wx:key="label" class="detail">
+        <view class="detail-head">
+          <view>{{item.label}}</view>
+          <view>{{item.score}}</view>
+        </view>
+        <view class="detail-track"><view class="detail-fill" style="width: {{item.score}}%"></view></view>
+        <view class="detail-copy">{{item.text}}</view>
+      </view>
+    </view>
+
+    <view class="disclaimer">{{result.disclaimer}}</view>
+
+    <view class="result-actions">
+      <button class="again" bindtap="chooseAgain">重新选择</button>
+      <button class="home-button" bindtap="backHome">回首页</button>
+    </view>
+  </view>
+
+  <canvas id="analysisCanvas" type="2d" class="analysis-canvas"></canvas>
+</view>
+
+<view wx:if="{{showPrivacy}}" class="modal-mask" catchtouchmove="preventDefault" bindtap="closePrivacy">
+  <view class="privacy-sheet" catchtap="preventDefault">
+    <button class="modal-close" bindtap="closePrivacy">×</button>
+    <view class="modal-title">照片怎么处理</view>
+    <view>照片只进入当前设备的临时内存和隐藏画布，不调用上传接口，也不发送给服务器。</view>
+    <view>对比只分析亮度、清晰度、色彩、背景和构图，不识别身份，也不比较真实长相。</view>
+    <view>证件照结果仅检查拍摄质量，不代表公安、签证或考试机构的正式审核。</view>
+    <view>离开结果页后，所有临时照片、画布和像素数据会立即清空。</view>
+  </view>
+</view>

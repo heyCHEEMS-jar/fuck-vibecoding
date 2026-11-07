@@ -18,11 +18,11 @@
     Object.freeze({ tier: 1, minSpeed: 430, damage: SLAM_DAMAGE, heldDamage: 5, intensity: "light" })
   ]);
   const TAGS = Object.freeze([
-    { id: "work", label: "工作", short: "工作" },
-    { id: "relations", label: "人际", short: "人际" },
-    { id: "life", label: "生活", short: "生活" },
-    { id: "sleep", label: "睡眠", short: "睡眠" },
-    { id: "other", label: "其他", short: "其他" }
+    { id: "work", label: "这破班", short: "工作" },
+    { id: "relations", label: "人情世故", short: "人际" },
+    { id: "life", label: "生活暴击", short: "生活" },
+    { id: "sleep", label: "睡个好觉真难", short: "睡眠" },
+    { id: "other", label: "其他破事", short: "其他" }
   ]);
   const PROPS = Object.freeze([
     { id: "keyboard", label: "键盘" },
@@ -35,7 +35,7 @@
   ]);
   const METHODS = Object.freeze([
     { id: "press", label: "液压压扁", description: "自动压扁" },
-    { id: "punch", label: "手动摔打", description: "点击、拖拽或摇晃" }
+    { id: "punch", label: "手动摔打", description: "点击、拖拽或抛摔" }
   ]);
 
   function cleanNote(value) {
@@ -230,24 +230,24 @@
 
   const RESULT_COPY = Object.freeze({
     press: Object.freeze([
-      { line: "机器正常，烦恼报废。", card: ["机器正常，", "烦恼报废。"] },
-      { line: "班味已失去立体形态。", card: ["班味已经，", "失去形状。"] },
-      { line: "这破事已经扁得不能再改。", card: ["这破事已经，", "不能再改。"] },
-      { line: "今日内耗已压缩归档。", card: ["今日内耗，", "压缩归档。"] },
-      { line: "压力没有意见，它已经扁了。", card: ["压力没意见，", "它已经扁了。"] },
-      { line: "需求还能改，箱子不能了。", card: ["需求还能改，", "箱子不能了。"] },
-      { line: "烦恼已被机器驳回。", card: ["烦恼已被，", "机器驳回。"] },
-      { line: "本次班味已压成A4纸。", card: ["本次班味，", "已压成A4纸。"] }
+      { line: "这破事，已经扁得没脾气了。", card: ["这破事，", "没脾气了。"] },
+      { line: "班味已压成薄薄一片。", card: ["班味已压成，", "薄薄一片。"] },
+      { line: "别改了，再改就成二维码了。", card: ["再改下去，", "就是二维码。"] },
+      { line: "今日内耗，已打包成废纸。", card: ["今日内耗，", "一张废纸。"] },
+      { line: "压力没说话，主要是说不了。", card: ["压力闭嘴了，", "物理意义上。"] },
+      { line: "需求还能改，箱子真不行了。", card: ["需求随便改，", "箱子不奉陪。"] },
+      { line: "本次破事已压缩到不占脑子。", card: ["破事已压缩，", "不占脑子。"] },
+      { line: "今天的班味，薄得能透光。", card: ["今天的班味，", "薄得透光。"] }
     ]),
     punch: Object.freeze([
-      { line: "工位还在，怒气已销毁。", card: ["工位还在，", "怒气已销毁。"] },
-      { line: "这口气已经亲手结清。", card: ["这口气已经，", "亲手结清。"] },
-      { line: "今天的破事挨完了。", card: ["今天的破事，", "已经挨完了。"] },
-      { line: "内耗停止接单。", card: ["今日内耗，", "停止接单。"] },
-      { line: "不是我脾气大，是纸箱不经打。", card: ["不是脾气大，", "是箱子不经打。"] },
-      { line: "今日怒气已物理清零。", card: ["今日怒气，", "物理清零。"] },
-      { line: "烦恼已被反复驳回。", card: ["反复驳回，", "不再受理。"] },
-      { line: "到此为止，不接受返工。", card: ["到此为止，", "不接受返工。"] }
+      { line: "这破事挨的打，比你画的饼实在。", card: ["饼是虚的，", "这顿打是真的。"] },
+      { line: "这口气不隔夜，现场结清。", card: ["这口气，", "现场结清。"] },
+      { line: "事情没解决，但箱子替你扛了。", card: ["事情没解决，", "箱子扛下了。"] },
+      { line: "内耗今日停业，明天看心情。", card: ["内耗停业，", "明天再说。"] },
+      { line: "不是脾气大，是它确实欠摔。", card: ["不是脾气大，", "是它欠摔。"] },
+      { line: "今日怒气已走物理流程。", card: ["今日怒气，", "走物理流程。"] },
+      { line: "你的沉默震耳欲聋，箱子知道了。", card: ["你的沉默，", "箱子听见了。"] },
+      { line: "到此为止，谁返工谁自己来。", card: ["到此为止，", "拒绝返工。"] }
     ])
   });
 
@@ -257,15 +257,16 @@
     return length ? hash % length : 0;
   }
 
-  function resultCopy(result, totalDays = 0) {
+  function resultCopy(result, totalDays = 0, variant = 0) {
     const method = result && result.method === "press" ? "press" : "punch";
     const pool = RESULT_COPY[method];
     const days = Number.isFinite(totalDays) ? Math.max(0, Math.floor(totalDays)) : 0;
     const unlocked = days >= 7 ? 8 : days >= 4 ? 6 : days >= 2 ? 4 : 2;
     const choices = pool.slice(0, unlocked);
-    const copy = choices[stableIndex(`${result && result.sessionId}:${result && result.tag}`, choices.length)];
+    const offset = Number.isFinite(variant) ? Math.max(0, Math.floor(variant)) : 0;
+    const copy = choices[(stableIndex(`${result && result.sessionId}:${result && result.tag}`, choices.length) + offset) % choices.length];
     return {
-      title: method === "press" ? "已经压扁了" : "这口气打完了",
+      title: method === "press" ? "这事儿，扁了" : "这口气，出了",
       line: copy.line,
       card: copy.card
     };

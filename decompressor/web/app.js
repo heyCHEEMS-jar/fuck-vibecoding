@@ -11,7 +11,15 @@
   const note = document.querySelector("#worry-note");
   const notePaper = document.querySelector("#note-paper");
   const noteNext = document.querySelector("#note-next");
+  const tagList = document.querySelector("#tag-list");
   const status = document.querySelector("#status");
+  const resultCard = document.querySelector("#result-card");
+  const resultTitle = document.querySelector("#result-title");
+  const resultLine = document.querySelector("#result-line");
+  const resultStatus = document.querySelector("#result-status");
+  const resultSummary = document.querySelector("#result-summary");
+  const resultShare = document.querySelector("#result-share");
+  const resultAgain = document.querySelector("#result-again");
   const privacyDialog = document.querySelector("#privacy-dialog");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const PROP_LAYOUT = Scene.PROP_LAYOUT;
@@ -35,12 +43,24 @@
 
   const audio = AudioFx.createPlayer(createBrowserAudio, "assets/audio/");
 
+  function renderTags() {
+    tagList.replaceChildren(...Core.TAGS.map(tag => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `tag-item${session.tag === tag.id ? " active" : ""}`;
+      button.textContent = tag.label;
+      button.addEventListener("click", () => {
+        session.setTag(tag.id);
+        audio.play("ui");
+        renderTags();
+      });
+      return button;
+    }));
+  }
+
   let session = new Core.RecycleSession();
   let body = Physics.create();
   let visualHealth = Core.MAX_HEALTH;
-  let sensor = { x: 0, y: 0, active: false };
-  let gravity = { x: 0, y: -1, z: 0 };
-  let gravityReady = false;
   let progress = loadProgress();
   let job = null;
   let drag = null;
@@ -53,13 +73,14 @@
   let collisionPoint = null;
   let processingStarted = 0;
   let resultAt = 0;
-  let motionListening = false;
   let viewScale = 1;
   let viewOffsetX = 0;
   let viewOffsetY = 0;
   let pixelScale = 1;
   let pixelOffsetX = 0;
   let pixelOffsetY = 0;
+
+  renderTags();
 
   function loadProgress() {
     try { return Progress.normalize(localStorage.getItem(Progress.STORAGE_KEY)); }
@@ -87,7 +108,7 @@
 
   function resize() {
     const bounds = canvas.getBoundingClientRect();
-    const ratio = Math.min(window.devicePixelRatio || 1, 3);
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.max(1, Math.round(bounds.width * ratio));
     canvas.height = Math.max(1, Math.round(bounds.height * ratio));
     viewScale = Math.min(bounds.width / Scene.WIDTH, bounds.height / Scene.INTERACTIVE_HEIGHT);
@@ -115,7 +136,7 @@
       audio.play("paper");
       note.value = "";
       notePaper.hidden = true;
-      setStatus("拖动物品进箱子，再把胶带拖到箱子上");
+      setStatus("把沾着班味的东西扔进去，再拿胶带封死");
       draw();
       schedule();
     } catch (_) {}
@@ -135,13 +156,43 @@
   });
   noteNext.addEventListener("click", finishNote);
 
+  function showResult() {
+    const result = session.result;
+    if (!result) return;
+    const copy = Core.resultCopy(result, progress.totalDays);
+    const next = Progress.nextUnlock(progress.totalDays);
+    resultCard.className = `result-card tier-${Progress.cardTier(progress.totalDays)}`;
+    resultTitle.textContent = copy.title;
+    resultLine.textContent = copy.line;
+    resultStatus.textContent = progress.added
+      ? `你已经连续放过自己 ${progress.totalDays} 天了`
+      : `今天已经发过疯了 · 累计 ${progress.totalDays} 天`;
+    resultSummary.textContent = next ? `再撑 ${next.days - progress.totalDays} 天，解锁${next.label}` : "工位幸存章已到手";
+    resultCard.hidden = false;
+  }
+
+  async function shareResult() {
+    const result = session.result;
+    if (!result) return;
+    const text = Core.resultCopy(result, progress.totalDays).line;
+    try {
+      if (navigator.share) await navigator.share({ title: "烦恼回收站", text, url: location.href });
+      else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(`${text} ${location.href}`);
+        setStatus("结果和入口已复制");
+      }
+    } catch (_) {}
+  }
+
+  resultShare.addEventListener("click", shareResult);
+  resultAgain.addEventListener("click", reset);
+
   function sealBox() {
     if (job || session.phase !== "pack") return;
     try {
       session.seal();
       audio.play("seal");
       vibrate("medium");
-      requestMotion();
       beginJob("seal", 720);
       setStatus("纸箱正在封装");
     } catch (_) {}
@@ -175,6 +226,7 @@
 
   function finishDestruction() {
     if (job) return;
+    drag = null;
     audio.play("final");
     vibrate("heavy");
     beginJob("punch-finish", 1150);
@@ -189,11 +241,7 @@
       return;
     }
     if (job) return;
-    if (session.phase === "result") {
-      audio.play("ui");
-      reset();
-      return;
-    }
+    if (session.phase === "result") return;
 
     if (session.phase === "pack") {
       for (const item of PROP_LAYOUT) {
@@ -214,7 +262,7 @@
       return;
     }
 
-    if (session.phase === "processing" && Physics.contains(body, current.x, current.y)) {
+    if (session.phase === "processing" && session.health > 0 && Physics.contains(body, current.x, current.y)) {
       drag = {
         kind: "box",
         x: current.x,
@@ -233,28 +281,32 @@
 
   function onPointerMove(event) {
     if (!drag) return;
+    if (job || session.health <= 0) {
+      drag = null;
+      return;
+    }
+    const currentDrag = drag;
     const current = point(event);
-    if (drag.kind === "privacy") {
-      if (Math.hypot(current.x - drag.startX, current.y - drag.startY) > 14) drag.moved = true;
-    } else if (drag.kind === "prop" || drag.kind === "tape") {
-      drag.x = current.x;
-      drag.y = current.y;
+    if (currentDrag.kind === "privacy") {
+      if (Math.hypot(current.x - currentDrag.startX, current.y - currentDrag.startY) > 14) currentDrag.moved = true;
+    } else if (currentDrag.kind === "prop" || currentDrag.kind === "tape") {
+      currentDrag.x = current.x;
+      currentDrag.y = current.y;
     } else {
-      const dt = Math.max(16, current.time - drag.lastTime) / 1000;
-      if (Math.hypot(current.x - drag.x, current.y - drag.y) > 10) drag.moved = true;
-      drag.vx = (current.x - drag.lastX) / dt;
-      drag.vy = (current.y - drag.lastY) / dt;
-      drag.lastX = current.x;
-      drag.lastY = current.y;
-      drag.lastTime = current.time;
-      const impacts = Physics.moveHeld(body, current.x, current.y, drag.vx, drag.vy);
+      const dt = Math.max(16, current.time - currentDrag.lastTime) / 1000;
+      if (Math.hypot(current.x - currentDrag.x, current.y - currentDrag.y) > 10) currentDrag.moved = true;
+      currentDrag.vx = (current.x - currentDrag.lastX) / dt;
+      currentDrag.vy = (current.y - currentDrag.lastY) / dt;
+      currentDrag.lastX = current.x;
+      currentDrag.lastY = current.y;
+      currentDrag.lastTime = current.time;
+      const impacts = Physics.moveHeld(body, current.x, current.y, currentDrag.vx, currentDrag.vy);
       const nextEdges = new Set(impacts.map(impact => impact.edge));
       impacts.forEach(impact => {
-        if (!drag.heldEdges.has(impact.edge)) slamBox(impact, true);
+        if (!currentDrag.heldEdges.has(impact.edge)) slamBox(impact, true);
       });
-      drag.heldEdges = nextEdges;
+      currentDrag.heldEdges = nextEdges;
     }
-    draw();
     schedule();
   }
 
@@ -293,55 +345,14 @@
         else Physics.throwBody(body, released.vx, released.vy);
       } else hitBox();
     }
-    draw();
     schedule();
   }
 
   canvas.addEventListener("pointerdown", onPointerDown);
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerup", onPointerUp);
-  canvas.addEventListener("pointercancel", () => { drag = null; });
+  canvas.addEventListener("pointercancel", () => { drag = null; schedule(); });
   canvas.addEventListener("contextmenu", event => event.preventDefault());
-
-  async function requestMotion() {
-    if (motionListening || !window.DeviceMotionEvent) return;
-    try {
-      if (typeof DeviceMotionEvent.requestPermission === "function") {
-        const permission = await DeviceMotionEvent.requestPermission();
-        if (permission !== "granted") return;
-      }
-      window.addEventListener("devicemotion", onMotion, { passive: true });
-      motionListening = true;
-    } catch (_) {}
-  }
-
-  function onMotion(event) {
-    if (session.phase !== "processing" || job) return;
-    const source = event.accelerationIncludingGravity || event.acceleration;
-    if (!source) return;
-    const raw = {
-      x: Number.isFinite(source.x) ? source.x / 9.81 : 0,
-      y: Number.isFinite(source.y) ? source.y / 9.81 : 0,
-      z: Number.isFinite(source.z) ? source.z / 9.81 : 0
-    };
-    if (!gravityReady) {
-      gravity = raw;
-      gravityReady = true;
-      sensor.x = raw.x;
-      sensor.y = raw.y;
-      sensor.active = true;
-      return;
-    }
-    const smoothing = 0.18;
-    gravity.x += (raw.x - gravity.x) * smoothing;
-    gravity.y += (raw.y - gravity.y) * smoothing;
-    gravity.z += (raw.z - gravity.z) * smoothing;
-    const shakeX = raw.x - gravity.x;
-    const shakeY = raw.y - gravity.y;
-    sensor.x = gravity.x - shakeX;
-    sensor.y = gravity.y - shakeY;
-    sensor.active = true;
-  }
 
   function beginJob(kind, duration) {
     job = {
@@ -367,7 +378,7 @@
     if (Math.abs(session.health - visualHealth) < 0.4) visualHealth = session.health;
 
     if (session.phase === "processing" && !job && !(drag && drag.kind === "box")) {
-      Physics.step(body, sensor, elapsed).forEach(impact => slamBox(impact));
+      Physics.step(body, null, elapsed).forEach(impact => slamBox(impact));
     }
     if (dropEffect && now - dropEffect.started > 430) dropEffect = null;
 
@@ -387,18 +398,19 @@
           body = Physics.create();
           visualHealth = Core.MAX_HEALTH;
           processingStarted = now;
-          setStatus("点击、拖拽或摇晃纸箱进行破坏");
+          setStatus("点它、拖它、扔它，让这破事飞起来");
         } else if (kind === "punch-finish") {
           const result = session.recycle(Date.now());
           progress = Progress.complete(progress, result.completedAt);
           saveProgress();
           audio.play("recycle");
           beginJob("recycle", 1450);
-          setStatus("正在回收");
+          setStatus("送走了，谁也别捡回来");
         } else if (kind === "recycle") {
           session.finish();
           resultAt = now;
-          setStatus("回收完成，轻触屏幕再来一次");
+          showResult();
+          setStatus("处理完了，发给同样命苦的人看看");
         }
       }
     }
@@ -434,11 +446,9 @@
   function reset() {
     if (session) session.dispose();
     session = new Core.RecycleSession();
+    renderTags();
     body = Physics.create();
     visualHealth = Core.MAX_HEALTH;
-    sensor = { x: 0, y: 0, active: false };
-    gravity = { x: 0, y: -1, z: 0 };
-    gravityReady = false;
     job = null;
     drag = null;
     dropEffect = null;
@@ -449,10 +459,12 @@
     collisionPoint = null;
     processingStarted = 0;
     resultAt = 0;
+    resultCard.hidden = true;
+    resultCard.className = "result-card";
     note.value = "";
     noteNext.disabled = true;
     notePaper.hidden = false;
-    setStatus("写下烦恼，然后拖动物品进箱子");
+    setStatus("把今天的破事写下来，打包处理");
     draw();
     schedule();
     setTimeout(() => note.focus({ preventScroll: true }), 0);
@@ -468,9 +480,6 @@
       frameId = null;
     } else {
       lastFrameAt = 0;
-      sensor = { x: 0, y: 0, active: false };
-    gravity = { x: 0, y: -1, z: 0 };
-    gravityReady = false;
       schedule();
     }
   });
@@ -482,7 +491,7 @@
     if (frameId !== null) cancelAnimationFrame(frameId);
   });
 
-  setStatus("写下烦恼，然后拖动物品进箱子");
+  setStatus("把今天的破事写下来，打包处理");
   resize();
   schedule();
 })();

@@ -17,7 +17,7 @@ function vibrate(type) {
 
 function reportEvent(name, values = {}) {
   if (!wx.reportEvent) return;
-  const allowed = ["tag", "method", "props", "hits", "slams", "recycle_days", "added_day"];
+  const allowed = ["tag", "method", "props", "hits", "slams", "recycle_days", "added_day", "source", "variant"];
   const data = {};
   allowed.forEach(key => {
     const value = values[key];
@@ -45,21 +45,31 @@ Page({
   data: {
     phase: "write",
     note: "",
+    tags: Core.TAGS,
+    selectedTag: "work",
     canContinue: false,
     showNote: true,
     showPrivacy: false,
-    canvasLabel: "写下烦恼，然后把物品拖进箱子"
+    showResult: false,
+    resultTitle: "",
+    resultLine: "",
+    resultStatus: "",
+    resultSummary: "",
+    resultTier: 0,
+    showRewardAd: false,
+    rewardBusy: false,
+    canvasLabel: "把今天的破事写下来，打包处理"
   },
 
-  onLoad() {
+  onLoad(options = {}) {
     this.audio = Audio.createPlayer(createMiniAudio, "/assets/audio/");
     this.session = new Core.RecycleSession();
+    this.resultVariant = 0;
+    this.rewardedVideoAd = null;
+    this.rewardedVideoCloseHandler = null;
+    this.rewardedVideoErrorHandler = null;
     this.body = Physics.create();
     this.visualHealth = Core.MAX_HEALTH;
-    this.sensor = { x: 0, y: 0, active: false };
-    this.gravity = { x: 0, y: -1, z: 0 };
-    this.gravityReady = false;
-    this.sensorRunning = false;
     this.job = null;
     this.drag = null;
     this.dropEffect = null;
@@ -77,7 +87,11 @@ Page({
     let stored = null;
     try { stored = wx.getStorageSync(Progress.STORAGE_KEY); } catch (_) {}
     this.progress = Progress.normalize(stored);
-    reportEvent("wr_open");
+    const source = options.source === "share" ? "share" : "direct";
+    this.openSource = source;
+    reportEvent("wr_open", { source });
+    if (source === "share") reportEvent("wr_share_open", { source });
+    this.setupRewardedVideoAd();
   },
 
   onReady() {
@@ -97,7 +111,7 @@ Page({
         return;
       }
       const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-      const ratio = Math.min(info.pixelRatio || 1, 3);
+      const ratio = Math.min(info.pixelRatio || 1, 2);
       this.sceneCanvas = scene.node;
       this.sceneContext = this.sceneCanvas.getContext("2d");
       this.sceneWidth = scene.width;
@@ -119,24 +133,66 @@ Page({
     if (!this.pageHidden) return;
     this.pageHidden = false;
     this.lastFrameAt = 0;
-    this.sensor = { x: 0, y: 0, active: false };
-    this.gravity = { x: 0, y: -1, z: 0 };
-    this.gravityReady = false;
-    if (this.session.phase === "processing") this.startSensor();
     this.queueFrame();
   },
 
   onHide() {
     this.pageHidden = true;
-    this.stopSensor();
     this.cancelFrame();
   },
 
   onUnload() {
-    this.stopSensor();
     this.cancelFrame();
+    this.destroyRewardedVideoAd();
     if (this.audio) this.audio.destroy();
     if (this.session) this.session.dispose();
+  },
+
+  setupRewardedVideoAd() {
+    const app = getApp();
+    const adUnitId = app && app.globalData && app.globalData.rewardedVideoAdUnitId;
+    if (!adUnitId || !wx.createRewardedVideoAd) return;
+    try {
+      const ad = wx.createRewardedVideoAd({ adUnitId });
+      this.rewardedVideoAd = ad;
+      this.rewardedVideoCloseHandler = result => {
+        this.setData({ rewardBusy: false });
+        if (!result || result.isEnded) {
+          this.resultVariant += 1;
+          this.updateResultCard();
+          reportEvent("wr_ad_reward", { variant: this.resultVariant, recycle_days: this.progress.totalDays });
+        }
+      };
+      this.rewardedVideoErrorHandler = error => {
+        this.setData({ rewardBusy: false, showRewardAd: false });
+        reportEvent("wr_ad_error", { source: error && error.errCode ? String(error.errCode) : "unknown" });
+      };
+      ad.onClose(this.rewardedVideoCloseHandler);
+      ad.onError(this.rewardedVideoErrorHandler);
+      this.setData({ showRewardAd: true });
+    } catch (_) {}
+  },
+
+  destroyRewardedVideoAd() {
+    const ad = this.rewardedVideoAd;
+    if (!ad) return;
+    try {
+      if (ad.offClose && this.rewardedVideoCloseHandler) ad.offClose(this.rewardedVideoCloseHandler);
+      if (ad.offError && this.rewardedVideoErrorHandler) ad.offError(this.rewardedVideoErrorHandler);
+      if (ad.destroy) ad.destroy();
+    } catch (_) {}
+    this.rewardedVideoAd = null;
+  },
+
+  watchRewardAd() {
+    const ad = this.rewardedVideoAd;
+    if (!ad || this.data.rewardBusy) return;
+    this.setData({ rewardBusy: true });
+    reportEvent("wr_ad_request", { recycle_days: this.progress.totalDays });
+    ad.show().catch(() => ad.load().then(() => ad.show())).catch(() => {
+      this.setData({ rewardBusy: false });
+      wx.showToast({ title: "视频暂时不可用", icon: "none" });
+    });
   },
 
   onNoteInput(event) {
@@ -146,13 +202,22 @@ Page({
     } catch (_) {}
   },
 
+  selectTag(event) {
+    const id = event.currentTarget && event.currentTarget.dataset && event.currentTarget.dataset.id;
+    try {
+      this.session.setTag(id);
+      this.setData({ selectedTag: id });
+      if (this.audio) this.audio.play("ui");
+    } catch (_) {}
+  },
+
   finishNote() {
     if (this.session.phase !== "write" || !this.session.note.trim()) return;
     try {
       this.session.pack();
       if (this.audio) this.audio.play("paper");
       reportEvent("wr_pack", { tag: this.session.tag });
-      this.setData({ phase: "pack", showNote: false, canvasLabel: "拖动物品进箱子，再把胶带拖到箱子上" });
+      this.setData({ phase: "pack", showNote: false, canvasLabel: "把沾着班味的东西扔进去，再拿胶带封死" });
       this.drawScene();
       this.queueFrame();
     } catch (_) {}
@@ -179,11 +244,7 @@ Page({
       return;
     }
     if (this.job) return;
-    if (this.session.phase === "result") {
-      if (this.audio) this.audio.play("ui");
-      this.resetSession();
-      return;
-    }
+    if (this.session.phase === "result") return;
 
     if (this.session.phase === "pack") {
       for (const item of PROP_LAYOUT) {
@@ -203,7 +264,7 @@ Page({
     }
 
     if (this.session.phase === "processing") {
-      if (!Physics.contains(this.body, point.x, point.y)) return;
+      if (this.session.health <= 0 || !Physics.contains(this.body, point.x, point.y)) return;
       this.drag = {
         kind: "box",
         x: point.x,
@@ -221,31 +282,35 @@ Page({
 
   onCanvasMove(event) {
     if (!this.drag) return;
+    if (this.job || this.session.health <= 0) {
+      this.drag = null;
+      return;
+    }
+    const drag = this.drag;
     const point = this.point(event);
     if (!point) return;
-    if (this.drag.kind === "privacy") {
-      if (Math.hypot(point.x - this.drag.startX, point.y - this.drag.startY) > 14) this.drag.moved = true;
-    } else if (this.drag.kind === "prop" || this.drag.kind === "tape") {
-      this.drag.x = point.x;
-      this.drag.y = point.y;
-    } else if (this.drag.kind === "box") {
-      const dt = Math.max(16, point.time - this.drag.lastTime) / 1000;
-      const dx = point.x - this.drag.lastX;
-      const dy = point.y - this.drag.lastY;
-      if (Math.hypot(point.x - this.drag.x, point.y - this.drag.y) > 10) this.drag.moved = true;
-      this.drag.vx = dx / dt;
-      this.drag.vy = dy / dt;
-      this.drag.lastX = point.x;
-      this.drag.lastY = point.y;
-      this.drag.lastTime = point.time;
-      const impacts = Physics.moveHeld(this.body, point.x, point.y, this.drag.vx, this.drag.vy);
+    if (drag.kind === "privacy") {
+      if (Math.hypot(point.x - drag.startX, point.y - drag.startY) > 14) drag.moved = true;
+    } else if (drag.kind === "prop" || drag.kind === "tape") {
+      drag.x = point.x;
+      drag.y = point.y;
+    } else if (drag.kind === "box") {
+      const dt = Math.max(16, point.time - drag.lastTime) / 1000;
+      const dx = point.x - drag.lastX;
+      const dy = point.y - drag.lastY;
+      if (Math.hypot(point.x - drag.x, point.y - drag.y) > 10) drag.moved = true;
+      drag.vx = dx / dt;
+      drag.vy = dy / dt;
+      drag.lastX = point.x;
+      drag.lastY = point.y;
+      drag.lastTime = point.time;
+      const impacts = Physics.moveHeld(this.body, point.x, point.y, drag.vx, drag.vy);
       const nextEdges = new Set(impacts.map(impact => impact.edge));
       impacts.forEach(impact => {
-        if (!this.drag.heldEdges.has(impact.edge)) this.slamBox(impact, true);
+        if (!drag.heldEdges.has(impact.edge)) this.slamBox(impact, true);
       });
-      this.drag.heldEdges = nextEdges;
+      drag.heldEdges = nextEdges;
     }
-    this.drawScene();
     this.queueFrame();
   },
 
@@ -285,12 +350,12 @@ Page({
         else Physics.throwBody(this.body, drag.vx, drag.vy);
       } else this.hitBox();
     }
-    this.drawScene();
     this.queueFrame();
   },
 
   onCanvasCancel() {
     this.drag = null;
+    this.queueFrame();
   },
 
   sealBox() {
@@ -300,7 +365,7 @@ Page({
       if (this.audio) this.audio.play("seal");
       vibrate("medium");
       this.startJob("seal", 720);
-      this.setData({ phase: "choose", canvasLabel: "纸箱正在封装" });
+      this.setData({ phase: "choose", canvasLabel: "封死了，这事儿别想跑" });
     } catch (_) {}
   },
 
@@ -332,61 +397,11 @@ Page({
 
   triggerFinish() {
     if (this.job) return;
-    this.stopSensor();
+    this.drag = null;
     if (this.audio) this.audio.play("final");
     vibrate("heavy");
     this.startJob("punch-finish", 1150);
-    this.setData({ canvasLabel: "最后一击，正在自动回收" });
-  },
-
-  startSensor() {
-    if (this.sensorRunning || !wx.startAccelerometer || !wx.onAccelerometerChange) return;
-    this.sensorRunning = true;
-    this.accelerometerHandler = reading => {
-      if (!reading || this.session.phase !== "processing" || this.job) return;
-      const raw = {
-        x: Number.isFinite(reading.x) ? reading.x : 0,
-        y: Number.isFinite(reading.y) ? reading.y : 0,
-        z: Number.isFinite(reading.z) ? reading.z : 0
-      };
-      if (!this.gravityReady) {
-        this.gravity = raw;
-        this.gravityReady = true;
-        this.sensor.x = raw.x;
-        this.sensor.y = raw.y;
-        this.sensor.active = true;
-        return;
-      }
-      const smoothing = 0.18;
-      this.gravity.x += (raw.x - this.gravity.x) * smoothing;
-      this.gravity.y += (raw.y - this.gravity.y) * smoothing;
-      this.gravity.z += (raw.z - this.gravity.z) * smoothing;
-      const shakeX = raw.x - this.gravity.x;
-      const shakeY = raw.y - this.gravity.y;
-      this.sensor.x = this.gravity.x - shakeX;
-      this.sensor.y = this.gravity.y - shakeY;
-      this.sensor.active = true;
-    };
-    try {
-      wx.onAccelerometerChange(this.accelerometerHandler);
-      wx.startAccelerometer({
-        interval: "game",
-        fail: () => { this.sensorRunning = false; }
-      });
-    } catch (_) { this.sensorRunning = false; }
-  },
-
-  stopSensor() {
-    if (!this.sensorRunning) return;
-    try {
-      if (wx.offAccelerometerChange && this.accelerometerHandler) wx.offAccelerometerChange(this.accelerometerHandler);
-      if (wx.stopAccelerometer) wx.stopAccelerometer();
-    } catch (_) {}
-    this.sensorRunning = false;
-    this.accelerometerHandler = null;
-    this.sensor = { x: 0, y: 0, active: false };
-    this.gravity = { x: 0, y: -1, z: 0 };
-    this.gravityReady = false;
+    this.setData({ canvasLabel: "最后一下，送这破事上路" });
   },
 
   recordCompletion(result) {
@@ -399,7 +414,27 @@ Page({
       hits: result.hits,
       slams: result.slams,
       recycle_days: this.progress.totalDays,
-      added_day: this.progress.added
+      added_day: this.progress.added,
+      source: this.openSource || "direct"
+    });
+    if (this.openSource === "share") reportEvent("wr_share_complete", { recycle_days: this.progress.totalDays });
+  },
+
+  updateResultCard() {
+    const result = this.session && this.session.result;
+    if (!result) return;
+    const copy = Core.resultCopy(result, this.progress.totalDays, this.resultVariant);
+    const next = Progress.nextUnlock(this.progress.totalDays);
+    const status = this.progress.added
+      ? `你已经连续放过自己 ${this.progress.totalDays} 天了`
+      : `今天已经发过疯了 · 累计 ${this.progress.totalDays} 天`;
+    this.setData({
+      showResult: true,
+      resultTitle: copy.title,
+      resultLine: copy.line,
+      resultStatus: status,
+      resultSummary: next ? `再撑 ${next.days - this.progress.totalDays} 天，解锁${next.label}` : "工位幸存章已到手",
+      resultTier: Progress.cardTier(this.progress.totalDays)
     });
   },
 
@@ -429,7 +464,7 @@ Page({
     if (Math.abs(this.session.health - this.visualHealth) < 0.4) this.visualHealth = this.session.health;
 
     if (this.session.phase === "processing" && !this.job && !(this.drag && this.drag.kind === "box")) {
-      Physics.step(this.body, this.sensor, elapsed).forEach(impact => this.slamBox(impact));
+      Physics.step(this.body, null, elapsed).forEach(impact => this.slamBox(impact));
     }
 
     if (this.dropEffect && now - this.dropEffect.started > 430) this.dropEffect = null;
@@ -450,19 +485,20 @@ Page({
           this.body = Physics.create();
     this.visualHealth = Core.MAX_HEALTH;
           this.processingStarted = now;
-          this.startSensor();
           reportEvent("wr_start", { method: "punch", props: this.session.props.length });
-          this.setData({ phase: "processing", canvasLabel: "点击、拖拽或摇晃纸箱进行破坏" });
+          this.setData({ phase: "processing", canvasLabel: "点它、拖它、扔它，让这破事飞起来" });
         } else if (kind === "punch-finish") {
           const result = this.session.recycle(now);
           this.recordCompletion(result);
           if (this.audio) this.audio.play("recycle");
           this.startJob("recycle", 1450);
-          this.setData({ phase: "recycle", canvasLabel: "正在回收" });
+          this.setData({ phase: "recycle", canvasLabel: "送走了，谁也别捡回来" });
         } else if (kind === "recycle") {
           this.session.finish();
           this.resultAt = now;
-          this.setData({ phase: "result", canvasLabel: "回收完成，轻触屏幕再来一次" });
+          this.updateResultCard();
+          reportEvent("wr_result_view", { recycle_days: this.progress.totalDays });
+          this.setData({ phase: "result", canvasLabel: "处理完了，发给同样命苦的人看看" });
         }
       }
     }
@@ -498,15 +534,12 @@ Page({
   },
 
   resetSession() {
-    this.stopSensor();
     this.cancelFrame();
     if (this.session) this.session.dispose();
     this.session = new Core.RecycleSession();
+    this.resultVariant = 0;
     this.body = Physics.create();
     this.visualHealth = Core.MAX_HEALTH;
-    this.sensor = { x: 0, y: 0, active: false };
-    this.gravity = { x: 0, y: -1, z: 0 };
-    this.gravityReady = false;
     this.job = null;
     this.drag = null;
     this.dropEffect = null;
@@ -519,9 +552,17 @@ Page({
     this.setData({
       phase: "write",
       note: "",
+      selectedTag: "work",
       canContinue: false,
       showNote: true,
-      canvasLabel: "写下烦恼，然后把物品拖进箱子"
+      showResult: false,
+      rewardBusy: false,
+      resultTitle: "",
+      resultLine: "",
+      resultStatus: "",
+      resultSummary: "",
+      resultTier: 0,
+      canvasLabel: "把今天的破事写下来，打包处理"
     });
     this.drawScene();
     this.queueFrame();
@@ -534,20 +575,20 @@ Page({
   preventDefault() {},
 
   onShareAppMessage() {
-    reportEvent("wr_share", { recycle_days: this.progress.totalDays });
+    reportEvent("wr_share", { recycle_days: this.progress.totalDays, source: this.data.showResult ? "result" : "menu" });
     const result = this.session && this.session.result;
     return {
-      title: result ? Core.resultCopy(result, this.progress.totalDays).line : "把今天的班味装箱扔掉。",
-      path: "/pages/index/index"
+      title: result ? Core.resultCopy(result, this.progress.totalDays, this.resultVariant).line : "把今天这破事装箱扔了。",
+      path: "/pages/index/index?source=share"
     };
   },
 
   onShareTimeline() {
-    reportEvent("wr_share", { recycle_days: this.progress.totalDays });
+    reportEvent("wr_share", { recycle_days: this.progress.totalDays, source: this.data.showResult ? "result" : "menu" });
     const result = this.session && this.session.result;
     return {
-      title: result ? Core.resultCopy(result, this.progress.totalDays).line : "把今天的班味装箱扔掉。",
-      query: ""
+      title: result ? Core.resultCopy(result, this.progress.totalDays, this.resultVariant).line : "把今天这破事装箱扔了。",
+      query: "source=share"
     };
   }
 });
